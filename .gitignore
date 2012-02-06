@@ -1,0 +1,8 @@
+# Configuration file
+config.yml
+
+# Logs
+*.log
+
+# PID
+*.pid
