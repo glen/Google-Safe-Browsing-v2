@@ -1,0 +1,21 @@
+defaults: &defaults
+  port:
+  server: 0.0.0.0 # Always localhost
+  check_for_update: 180 # seconds
+  database_configuration:
+    host: 0.0.0.0
+    port:
+    db: 2
+
+development:
+  <<: *defaults
+
+staging:
+  <<: *defaults
+
+test:
+  <<: *defaults
+
+production:
+  <<: *defaults
+
