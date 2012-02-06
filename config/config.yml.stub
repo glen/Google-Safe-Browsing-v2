@@ -1,11 +1,16 @@
 defaults: &defaults
-  port:
+  port: 10003
   server: 0.0.0.0 # Always localhost
   check_for_update: 180 # seconds
-  database_configuration:
+  client: api
+  apikey: # Enter your Google Safe Browsing API Key
+  clientver: # You client version
+  pver: 2.2
+  database_configuration: # Redis database configurations
     host: 0.0.0.0
-    port:
-    db: 2
+    port: 6379
+  add_db: 0
+  sub_db: 1
 
 development:
   <<: *defaults

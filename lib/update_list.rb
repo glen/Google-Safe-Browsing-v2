@@ -162,8 +162,8 @@ def update_list
   url_for_data = "/safebrowsing/downloads?"
   google_url = "http://safebrowsing.clients.google.com:80"
   DaemonKit.logger.info "Checking at #{Time.now}"
-  db_add = Redis.new(CONFIG.database_configuration.merge(:db => 10))
-  db_sub = Redis.new(CONFIG.database_configuration.merge(:db => 11))
+  db_add = Redis.new(CONFIG.database_configuration.merge(:db => CONFIG.add_db))
+  db_sub = Redis.new(CONFIG.database_configuration.merge(:db => CONFIG.sub_db))
 
   last_queried = db_add.get "repoll_at"
   if last_queried.nil?

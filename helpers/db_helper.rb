@@ -75,15 +75,13 @@ module DbHelper
 
   def self.in_db?(digests, set)
     return [] if digests.empty?
-    db_type = set.match(/\Aadd/)? 10 : 11
-    db = Redis.new(CONFIG.database_configuration.merge(:db => db_type))
+    db = set.match(/\Aadd/)? $DB_ADD : $DB_SUB
     matches = []
     digests.each do |digest|
       if db.sismember set, digest
         matches << digest
       end
     end
-    db.quit
     return matches
   end
 
@@ -105,7 +103,7 @@ module DbHelper
     hosts, urls = check_url(url)
   
     digest_hosts = digests(hosts)
-    puts digest_hosts
+#    puts digest_hosts
     sliced_digest_hosts = sliced_digests(digest_hosts)
     blacklist_digests = in_db?(sliced_digest_hosts, "add_host")
     whitelist_digests = in_db?(blacklist_digests, "sub_host")
