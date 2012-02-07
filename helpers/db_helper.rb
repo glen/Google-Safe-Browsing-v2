@@ -1,5 +1,7 @@
 module DbHelper
 
+  $DB_ADD = Redis.new(:db => CONFIG.add_db)
+  $DB_SUB = Redis.new(:db => CONFIG.sub_db)
   def self.check_url(url)
     urls_to_check = []
     unless url == "/" or url.empty?
@@ -96,7 +98,7 @@ module DbHelper
   def self.clean?(query_url)
     url = Canonicalize.canonicalize(query_url)
 #    url = query_url  
-    DaemonKit.logger.info "Cleaning url #{query_url} gives #{url}"
+#    DaemonKit.logger.info "Cleaning url #{query_url} gives #{url}"
     digests = []
     prefixes = []
 
@@ -110,12 +112,12 @@ module DbHelper
     digests = blacklist_digests - whitelist_digests
     
     unless digests.empty?
-      DaemonKit.logger.info "Performing lookup for #{url}"
+#      DaemonKit.logger.info "Performing lookup for #{url}"
       full_hashes = query_for_full_hash(digests)
       full_hashes.each do |chunk, full_hash|
         full_hash.each do |hash|
           if digest_hosts.include?(hash)
-            DaemonKit.logger.info "Got full hash match of host for #{url} in chunk #{chunk}"
+#            DaemonKit.logger.info "Got full hash match of host for #{url} in chunk #{chunk}"
             return false
           end
         end
@@ -131,19 +133,19 @@ module DbHelper
     prefixes = blacklist_prefixes - whitelist_prefixes
 
     unless prefixes.empty?
-      DaemonKit.logger.info "Performing lookup for #{url} for prefix"
+#      DaemonKit.logger.info "Performing lookup for #{url} for prefix"
       full_hashes = query_for_full_hash(prefixes)
       full_hashes.each do |chunk, full_hash|
         full_hash.each do |hash|
           if digest_prefixes.include?(hash)
-            DaemonKit.logger.info "Got full hash match of prefix for #{url} in chunk #{chunk}"
+#            DaemonKit.logger.info "Got full hash match of prefix for #{url} in chunk #{chunk}"
             return false
           end
         end
       end
     end
 
-    DaemonKit.logger.info "Clean for #{url}"
+#    DaemonKit.logger.info "Clean for #{url}"
     return true
   end
 

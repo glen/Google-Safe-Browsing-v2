@@ -19,14 +19,5 @@ excluded_files = []
 Dir.glob(File.join(DaemonKit.root, "helpers", "*.rb")).each{|f| require f}
 
 
-class String
-  def to_my_utf8
-    ::Iconv.conv('UTF-8//IGNORE', 'UTF-8', self + ' ')[0..-2]
-  end
-end
-
-$DB_ADD = Redis.new(:db => CONFIG.add_db)
-$DB_SUB = Redis.new(:db => CONFIG.sub_db)
-
 #debugger
 puts "Uncomment the debugger above this line"

@@ -15,17 +15,17 @@ class RequestHandler < EventMachine::Connection
           url = URI.decode(query_string.sub("url=", "").strip)
           if url.empty?
             resp.content = {"status" => "Error. Query to be in form #{CONFIG.server}:#{CONFIG.port}/url_status?url=http://www.google.com"}.to_json
-#          elsif UrlHelper.malformed_url?(url)
-#            resp.content = {"url" => url, "status" => "Error. Invalid url."}.to_json
           else
             if DbHelper.clean?(url)
+#              DaemonKit.logger.info "#{url} is Safe!"
               resp.content = {:url => url, :status => "Clean"}.to_json
             else
+              DaemonKit.logger.info "#{url} is Unsafe!"
               resp.content = {:url => url, :status => "Dirty"}.to_json
             end
           end          
         else
-          DaemonKit.logger.info "wrong request"
+          DaemonKit.logger.info "Incorrect request"
           resp.content = "Incorrect request sent"
         end
       end
