@@ -6,3 +6,6 @@ config.yml
 
 # PID
 *.pid
+
+# Gemfile.lock
+Gemfile.lock

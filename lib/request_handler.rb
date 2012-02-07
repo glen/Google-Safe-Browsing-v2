@@ -6,7 +6,6 @@ class RequestHandler < EventMachine::Connection
     # Block which fulfills the request
     operation = proc do
       request = @http_request_uri.sub("/", "")
-      puts request
       request_type = @http_request_method
       resp.status  = 200
       if request_type == "GET"

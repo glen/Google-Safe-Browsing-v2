@@ -25,8 +25,8 @@ class String
   end
 end
 
-$DB_ADD = Redis.new(:db => 10)
-$DB_SUB = Redis.new(:db => 11)
+$DB_ADD = Redis.new(:db => CONFIG.add_db)
+$DB_SUB = Redis.new(:db => CONFIG.sub_db)
 
 #debugger
 puts "Uncomment the debugger above this line"

@@ -149,7 +149,7 @@ end
 
 
 def time_to_query?
-  db_add = Redis.new(CONFIG.database_configuration.merge(:db => 10))
+  db_add = Redis.new(CONFIG.database_configuration.merge(:db => CONFIG.add_db))
   last_queried = db_add.get "repoll_at"
   if last_queried.nil?
     db_add.set "repoll_at", (Time.now - 1)
@@ -362,11 +362,11 @@ def query_for_full_hash(prefixes)
   uri = URI.parse("http://safebrowsing.clients.google.com:80")
   http = Net::HTTP.new(uri.host, uri.port)
   request = Net::HTTP::Post.new("#{req_for_full_hash}client=#{CONFIG.client}&apikey=#{CONFIG.apikey}&appver=#{CONFIG.clientver}&pver=#{CONFIG.pver}")
-  puts "#{req_for_full_hash}client=#{CONFIG.client}&apikey=#{CONFIG.apikey}&appver=#{CONFIG.clientver}&pver=#{CONFIG.pver}"
+#  puts "#{req_for_full_hash}client=#{CONFIG.client}&apikey=#{CONFIG.apikey}&appver=#{CONFIG.clientver}&pver=#{CONFIG.pver}"
   request.body = "#{each_prefix_length}:#{prefixes_length}\n#{all_prefixes}"
   # puts request.body
   response = http.request(request)
-  puts response.body
+#  puts response.body
   full_hashes = {}
   if response.code == "200"
     full_hashes = get_full_hash(response.body)
@@ -375,6 +375,6 @@ def query_for_full_hash(prefixes)
   else
     DaemonKit.logger.info "Got response for full length hash as #{response.code}"
   end
-  puts full_hashes
+#  puts full_hashes
   full_hashes
 end
