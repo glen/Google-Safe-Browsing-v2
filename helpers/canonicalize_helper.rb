@@ -10,7 +10,7 @@ module Canonicalize
 
     input = input.gsub(/ /, '%20')
 
-    url = input.match(/(.*):\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,10}|[^\/]*)(\/.*)*/)
+    url = input.match(/(.*):\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,10}\.[^\/]*|\d{1,10}[^\/]*|[^\/]*)(\/.*)*/)
 
     scheme = url[1]
     domain = url[2]
@@ -72,7 +72,6 @@ module Canonicalize
 
   def self.hex_encode(str, type)
     clean_url = ""
-#    recursive_percent_escape(str.strip).encode('UTF-8').bytes{|byte|
     recursive_percent_escape(str.strip).to_my_utf8.bytes{|byte| 
   #    puts "#{byte.chr}"
       if byte <= 32 || byte >= 127 || byte == 35 || byte == 37
@@ -80,7 +79,6 @@ module Canonicalize
   #      clean_url << "%#{byte.to_s(16).upcase}"
 			  byte.chr == "%" ? clean_url << byte.chr : clean_url << "%#{byte.to_s(16).upcase}"
       else
-  #      puts byte
         if type == "domain"
           clean_url << byte.chr.downcase
         else
