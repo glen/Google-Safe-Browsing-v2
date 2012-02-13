@@ -25,14 +25,15 @@ module DbHelper
     end
     urls_to_check.flatten!
     urls_to_check.uniq!
-    hosts = []
-    urls = []
-#    urls_to_check.each{|url| hosts << url if URI.parse("http://#{url}").host + "/"  == url}
-    urls_to_check.each{|url| hosts << url if UrlHelper.host(url) == url}
-    urls = urls_to_check - hosts
-#    DaemonKit.logger.info "for url #{url} => hosts are #{hosts.join(', ')}|urls are #{urls.join(', ')}"
+    
+    hostkeys = []
+    prefixes = []
+    
+    # Segregates the urls into hostkeys and prefixes
+    urls_to_check.each{|url| hostkeys << url if url.match(/[^\/]*/)[0].count('.') == 1}
+    prefixes = urls_to_check - hostkeys
 
-    return [hosts, urls]
+    return [hostkeys, prefixes]
   end
 
   def self.get_urls(u)
