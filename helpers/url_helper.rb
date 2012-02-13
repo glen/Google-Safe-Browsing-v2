@@ -52,10 +52,6 @@ module UrlHelper
   ##
   # Obtain the host of the url that is to be monitored
   def self.host(url)
-    URI.parse(url).host
-  end
-
-  def self.host(url)
     url.match(/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\d{1,10}|[^\/]*)(\/.*)*/)[0]
   end
 
