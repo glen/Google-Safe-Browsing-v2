@@ -96,6 +96,14 @@ module DbHelper
     sliced_digests
   end
 
+  def self.matched_prefixes(matches)
+    prefixes = []
+    matches.each do |match|
+      prefixes << ($DB_ADD.smembers match)
+    end
+    prefixes.flatten.uniq
+  end
+
   def self.clean?(query_url)
     url = Canonicalize.canonicalize(query_url)
 #    url = query_url  
@@ -103,51 +111,73 @@ module DbHelper
     digests = []
     prefixes = []
 
-    hosts, urls = check_url(url)
-  
-    digest_hosts = digests(hosts)
-#    puts digest_hosts
-    sliced_digest_hosts = sliced_digests(digest_hosts)
-    blacklist_digests = in_db?(sliced_digest_hosts, "add_host")
-    whitelist_digests = in_db?(blacklist_digests, "sub_host")
-    digests = blacklist_digests - whitelist_digests
+    hostkeys, prefixes = DbHelper.check_url(url)
+ 
+    digest_hostkeys = DbHelper.digests(hostkeys)
+    sliced_digest_hostkeys = DbHelper.sliced_digests(digest_hostkeys)
+
+    if prefixes.empty?
+      sliced_digest_prefixes = []
+    else
+      digest_prefixes = DbHelper.digests(prefixes)
+      sliced_digest_prefixes = DbHelper.sliced_digests(digest_prefixes)
+    end
     
-    unless digests.empty?
-#      DaemonKit.logger.info "Performing lookup for #{url}"
-      full_hashes = query_for_full_hash(digests)
-      full_hashes.each do |chunk, full_hash|
-        full_hash.each do |hash|
-          if digest_hosts.include?(hash)
-#            DaemonKit.logger.info "Got full hash match of host for #{url} in chunk #{chunk}"
-            return false
+    hostkey_matches = DbHelper.in_db?(sliced_digest_hostkeys, "add_host")
+    
+    prefix_matches = []
+    # if hostkey found
+    unless hostkey_matches.empty?
+      # hostkey has a prefix
+      unless sliced_digest_prefixes.empty?
+        # if any one of the prefixes of the matched hostkeys matches with combinations
+        prefix_matches = (matched_prefixes(hostkey_matches) & (sliced_digest_hostkeys + sliced_digest_prefixes).flatten.uniq)
+        unless prefix_matches.empty?
+          # Check Subs
+          sub_matches = []
+          sub_matches << DbHelper.in_db?(prefix_matches, "sub_host")
+          sub_matches << DbHelper.in_db?(prefix_matches, "sub_prefix")
+          sub_matches.flatten!
+          sub_matches.uniq!
+          # If not in subs then do full hash lookup
+          unless sub_matches.empty?
+#            puts "Performing lookup for #{url} prefix"
+            full_hashes = query_for_full_hash(prefix_matches)
+            full_hashes.each do |chunk, full_hash|
+              full_hash.each do |hash|
+                return false if (digest_hostkeys + digest_prefixes).flatten.uniq.include?(hash)
+              end
+            end
+            return true         
+          else
+            return true
           end
+        else
+          return true
         end
-      end
-    end
-
-    digest_prefixes = digests(urls)
-    sliced_digest_prefixes = sliced_digests(digest_prefixes)
-
-    blacklist_prefixes = in_db?(sliced_digest_prefixes, "add_prefix")
-    whitelist_prefixes = in_db?(blacklist_prefixes, "sub_prefix")
-
-    prefixes = blacklist_prefixes - whitelist_prefixes
-
-    unless prefixes.empty?
-#      DaemonKit.logger.info "Performing lookup for #{url} for prefix"
-      full_hashes = query_for_full_hash(prefixes)
-      full_hashes.each do |chunk, full_hash|
-        full_hash.each do |hash|
-          if digest_prefixes.include?(hash)
-#            DaemonKit.logger.info "Got full hash match of prefix for #{url} in chunk #{chunk}"
-            return false
+      # hostkey does not have prefix, meaning whole domain is bad
+      # hence check the subs with the hostkey_matches
+      else
+        # Check Subs
+        sub_matches = []
+        sub_matches = DbHelper.in_db?(hostkey_matches, "sub_host")
+        # If not in subs then do full hash lookup
+        if sub_matches.empty?
+#          puts "Performing lookup for #{url} hostkey"
+          full_hashes = query_for_full_hash(hostkey_matches)
+          full_hashes.each do |chunk, full_hash|
+            full_hash.each do |hash|
+              return false if digest_hostkeys.include?(hash)
+            end
           end
-        end
+          return true         
+        else
+          return true
+        end        
       end
-    end
-
-#    DaemonKit.logger.info "Clean for #{url}"
-    return true
+    else
+      return true
+    end  
   end
 
   def self.has_path?(url)
